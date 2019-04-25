@@ -1,4 +1,4 @@
-﻿// test.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
+﻿// test-server.cpp : 此文件包含 "main" 函数。程序执行将在此处开始并结束。
 //
 
 #include <iostream>
@@ -15,14 +15,17 @@ extern "C" {
 int main()
 {
 	SOCKET socket = { 0 };
-	bool result = connectWith(&socket, "127.0.0.1", 8090);
-	sendTo(&socket, "测试123", 8);
-	while (peekMessageSize(&socket) == 0) {}
-	char* message = new char[peekMessageSize(&socket)];
-	getMessage(&socket, message);
-	std::cout << message;
-	disconnect(&socket);
-	
+	SOCKADDR addr = { 0 };
+	if (listenOn(8090, &socket, &addr)) {
+		int size = 0;
+		while ((size=peekMessageSize(&socket)) == 0) {}
+		char* message = new char[size];
+		getMessage(&socket, message);
+		std::cout << message;
+		sendTo(&socket, message,size);
+		disconnect(&socket);
+
+	}
 }
 
 // 运行程序: Ctrl + F5 或调试 >“开始执行(不调试)”菜单

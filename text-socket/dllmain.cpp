@@ -67,4 +67,20 @@ extern "C" {
 	_declspec(dllexport) void disconnect(SOCKET* socketKey) {
 		closesocket(*socketKey);
 	}
+	_declspec(dllexport) bool listenOn(int port,SOCKET* socketBuf, SOCKADDR* addrBuf) {
+		SOCKET servSock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+		sockaddr_in sockAddr = {0};
+		sockAddr.sin_family = PF_INET;  //使用IPv4地址
+		inet_pton(PF_INET, "127.0.0.1", &sockAddr.sin_addr);
+		sockAddr.sin_port = htons(port);  //端口
+		bind(servSock, (SOCKADDR*)& sockAddr, sizeof(SOCKADDR));
+		if (listen(servSock, 1)) { return false; }
+		memset(socketBuf, 0, sizeof(SOCKET));
+		memset(addrBuf, 0, sizeof(SOCKADDR));
+		int nSize = sizeof(SOCKADDR);
+		SOCKET clntSock = _Check_return_ accept(servSock, addrBuf, &nSize);
+		closesocket(servSock);
+		memcpy(socketBuf, &clntSock, sizeof(SOCKET));
+		return true;
+	}
 }
